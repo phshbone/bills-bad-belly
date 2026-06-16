@@ -1,6 +1,24 @@
 import React, { useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { Home, Camera, Activity, User, Gauge, CalendarDays, Zap, ClipboardList, ShieldCheck, Ban, BookOpen, Settings, History } from 'lucide-react';
+import {
+  Home,
+  Camera,
+  Activity,
+  User,
+  Gauge,
+  CalendarDays,
+  Zap,
+  ClipboardList,
+  ShieldCheck,
+  Ban,
+  BookOpen,
+  Settings,
+  History,
+  Upload,
+  Search,
+  Apple,
+  NotebookPen,
+} from 'lucide-react';
 import './styles.css';
 
 const navItems = [
@@ -10,37 +28,12 @@ const navItems = [
   { id: 'me', label: 'Me', icon: User },
 ];
 
-const blueprintSummary = `Bottom Navigation
-* Home
-* Scan
-* Flare
-* Me
-
-Home
-* Belly Meter
-* Today / 7 Days / 30 Days
-* Quick Actions
-
-Scan
-* Camera placeholder
-* Quick Mode
-* Full Breakdown
-
-Flare
-* Normal Mode / Flare Mode
-* Safe Foods
-* Avoid Foods
-
-Me
-* My Foods
-* Daily Log
-* Notes
-* History
-* Settings
----
-The advantage is that the new chat becomes:
-
-### Build Chat`;
+const screens = {
+  home: HomeScreen,
+  scan: ScanScreen,
+  flare: FlareScreen,
+  me: MeScreen,
+};
 
 function App() {
   const [activeTab, setActiveTab] = useState('home');
@@ -50,7 +43,7 @@ function App() {
     <main className="app-shell">
       <header className="topbar">
         <div>
-          <p className="eyebrow">Version 0.1</p>
+          <p className="eyebrow">Version 0.2</p>
           <h1>bill's bad belly</h1>
         </div>
         <div className="logo-mark" aria-hidden="true">bb</div>
@@ -64,6 +57,7 @@ function App() {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
+
           return (
             <button
               key={item.id}
@@ -82,27 +76,39 @@ function App() {
 }
 
 function HomeScreen() {
+  const [range, setRange] = useState('Today');
+
   return (
     <div className="screen-content">
-      <ScreenTitle title="Home" subtitle="Quick status and daily gut check." />
+      <ScreenTitle title="Home" subtitle="Can I safely eat this right now?" />
+
       <div className="belly-meter">
         <Gauge size={42} />
         <div>
           <p>Belly Meter</p>
           <strong>Steady</strong>
-          <span>Placeholder score for Version 0.1</span>
+          <span>{range} view — placeholder trend status.</span>
         </div>
       </div>
+
       <div className="segmented-control">
-        <button>Today</button>
-        <button>7 Days</button>
-        <button>30 Days</button>
+        {['Today', '7 Days', '30 Days'].map((item) => (
+          <button
+            key={item}
+            className={range === item ? 'selected' : ''}
+            onClick={() => setRange(item)}
+            type="button"
+          >
+            {item}
+          </button>
+        ))}
       </div>
+
       <div className="grid two">
-        <ActionCard icon={Camera} title="Scan food" text="Open camera placeholder." />
-        <ActionCard icon={ClipboardList} title="Daily log" text="Track symptoms later." />
-        <ActionCard icon={Zap} title="Flare check" text="Switch mode later." />
-        <ActionCard icon={CalendarDays} title="History" text="Review patterns later." />
+        <ActionCard icon={Camera} title="Scan Food" text="Check a meal, snack, label, or menu." />
+        <ActionCard icon={ClipboardList} title="Daily Log" text="Quick symptom and food note." />
+        <ActionCard icon={Zap} title="Flare Help" text="Switch to stricter guidance." />
+        <ActionCard icon={CalendarDays} title="Trends" text="Future symptom patterns." />
       </div>
     </div>
   );
@@ -111,31 +117,67 @@ function HomeScreen() {
 function ScanScreen() {
   return (
     <div className="screen-content">
-      <ScreenTitle title="Scan" subtitle="Camera shell for food and menu checks." />
+      <ScreenTitle title="Scan" subtitle="Photo-based Crohn's food check shell." />
+
       <div className="camera-placeholder">
         <Camera size={54} />
-        <p>Camera placeholder</p>
-        <span>No image analysis in Version 0.1.</span>
+        <p>Camera Placeholder</p>
+        <span>Image capture and AI analysis come later.</span>
       </div>
-      <div className="grid two">
-        <ActionCard icon={Zap} title="Quick Mode" text="Fast Good / Caution / Avoid result later." />
-        <ActionCard icon={BookOpen} title="Full Breakdown" text="Ingredient-level explanation later." />
+
+      <div className="button-stack">
+        <button className="primary-action" type="button">
+          <Upload size={20} />
+          Upload Image
+        </button>
+
+        <button className="secondary-action" type="button">
+          <Search size={20} />
+          Analyze
+        </button>
+      </div>
+
+      <div className="results-panel">
+        <ResultCard label="Good Foods" text="Foods that appear safer will show here." />
+        <ResultCard label="Caution Foods" text="Possible trigger foods will show here." />
+        <ResultCard label="Avoid Foods" text="Higher-risk foods will show here." />
       </div>
     </div>
   );
 }
 
 function FlareScreen() {
+  const [mode, setMode] = useState('Normal');
+
   return (
     <div className="screen-content">
-      <ScreenTitle title="Flare" subtitle="Mode shell for normal and flare guidance." />
+      <ScreenTitle title="Flare" subtitle="Normal and flare-mode food guidance." />
+
       <div className="mode-toggle">
-        <button className="selected">Normal Mode</button>
-        <button>Flare Mode</button>
+        {['Normal', 'Flare'].map((item) => (
+          <button
+            key={item}
+            className={mode === item ? 'selected' : ''}
+            onClick={() => setMode(item)}
+            type="button"
+          >
+            {item} Mode
+          </button>
+        ))}
       </div>
-      <div className="grid two">
-        <ActionCard icon={ShieldCheck} title="Safe Foods" text="Placeholder list for flare-safe foods." />
-        <ActionCard icon={Ban} title="Avoid Foods" text="Placeholder list for foods to avoid." />
+
+      <div className="panel-list">
+        <FoodPanel
+          icon={ShieldCheck}
+          title="Safe Foods"
+          foods={['White rice', 'Bananas', 'Plain chicken', 'Applesauce']}
+        />
+
+        <FoodPanel
+          icon={Ban}
+          title="Avoid Foods"
+          foods={['Seeds', 'Raw vegetables', 'Fried foods', 'Carbonated drinks']}
+        />
       </div>
     </div>
   );
@@ -145,17 +187,14 @@ function MeScreen() {
   return (
     <div className="screen-content">
       <ScreenTitle title="Me" subtitle="Personal food profile and app records." />
+
       <div className="list-stack">
-        <ListRow icon={BookOpen} title="My Foods" />
+        <ListRow icon={Apple} title="My Foods" />
         <ListRow icon={ClipboardList} title="Daily Log" />
-        <ListRow icon={BookOpen} title="Notes" />
+        <ListRow icon={NotebookPen} title="Notes" />
         <ListRow icon={History} title="History" />
         <ListRow icon={Settings} title="Settings" />
       </div>
-      <details className="blueprint-box">
-        <summary>Blueprint Summary</summary>
-        <pre>{blueprintSummary}</pre>
-      </details>
     </div>
   );
 }
@@ -179,6 +218,32 @@ function ActionCard({ icon: Icon, title, text }) {
   );
 }
 
+function ResultCard({ label, text }) {
+  return (
+    <article className="result-card">
+      <h3>{label}</h3>
+      <p>{text}</p>
+    </article>
+  );
+}
+
+function FoodPanel({ icon: Icon, title, foods }) {
+  return (
+    <article className="food-panel">
+      <div className="food-panel-title">
+        <Icon size={22} />
+        <h3>{title}</h3>
+      </div>
+
+      <ul>
+        {foods.map((food) => (
+          <li key={food}>{food}</li>
+        ))}
+      </ul>
+    </article>
+  );
+}
+
 function ListRow({ icon: Icon, title }) {
   return (
     <button className="list-row" type="button">
@@ -188,12 +253,5 @@ function ListRow({ icon: Icon, title }) {
     </button>
   );
 }
-
-const screens = {
-  home: HomeScreen,
-  scan: ScanScreen,
-  flare: FlareScreen,
-  me: MeScreen,
-};
 
 createRoot(document.getElementById('root')).render(<App />);
