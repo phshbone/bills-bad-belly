@@ -1,0 +1,11 @@
+{
+  "name": "bill's bad belly",
+  "short_name": "bad belly",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1b2027",
+  "theme_color": "#7d5f86",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
