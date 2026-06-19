@@ -11,13 +11,15 @@ import {
   ClipboardList,
   ShieldCheck,
   Ban,
-  BookOpen,
   Settings,
   History,
   Upload,
   Search,
   Apple,
   NotebookPen,
+  ArrowLeft,
+  Minus,
+  Plus,
 } from 'lucide-react';
 import './styles.css';
 
@@ -28,29 +30,24 @@ const navItems = [
   { id: 'me', label: 'Me', icon: User },
 ];
 
-const screens = {
-  home: HomeScreen,
-  scan: ScanScreen,
-  flare: FlareScreen,
-  me: MeScreen,
-};
-
 function App() {
   const [activeTab, setActiveTab] = useState('home');
-  const ActiveScreen = screens[activeTab];
 
   return (
     <main className="app-shell">
       <header className="topbar">
         <div>
-          <p className="eyebrow">Version 0.2</p>
+          <p className="eyebrow">Version 0.3</p>
           <h1>bill's bad belly</h1>
         </div>
         <div className="logo-mark" aria-hidden="true">bb</div>
       </header>
 
       <section className="screen-card">
-        <ActiveScreen />
+        {activeTab === 'home' && <HomeScreen setActiveTab={setActiveTab} />}
+        {activeTab === 'scan' && <ScanScreen />}
+        {activeTab === 'flare' && <FlareScreen />}
+        {activeTab === 'me' && <MeScreen />}
       </section>
 
       <nav className="bottom-nav" aria-label="Main navigation">
@@ -75,8 +72,14 @@ function App() {
   );
 }
 
-function HomeScreen() {
-  const [range, setRange] = useState('Today');
+function HomeScreen({ setActiveTab }) {
+  const [range, setRange] = useState('today');
+
+  const ranges = [
+    { id: 'today', label: 'Today' },
+    { id: 'week', label: '7 Days' },
+    { id: 'month', label: '30 Days' },
+  ];
 
   return (
     <div className="screen-content">
@@ -87,28 +90,28 @@ function HomeScreen() {
         <div>
           <p>Belly Meter</p>
           <strong>Steady</strong>
-          <span>{range} view — placeholder trend status.</span>
+          <span>{ranges.find((item) => item.id === range)?.label} view — placeholder trend status.</span>
         </div>
       </div>
 
       <div className="segmented-control">
-        {['Today', '7 Days', '30 Days'].map((item) => (
+        {ranges.map((item) => (
           <button
-            key={item}
-            className={range === item ? 'selected' : ''}
-            onClick={() => setRange(item)}
+            key={item.id}
+            className={range === item.id ? 'selected' : ''}
+            onClick={() => setRange(item.id)}
             type="button"
           >
-            {item}
+            {item.label}
           </button>
         ))}
       </div>
 
       <div className="grid two">
-        <ActionCard icon={Camera} title="Scan Food" text="Check a meal, snack, label, or menu." />
-        <ActionCard icon={ClipboardList} title="Daily Log" text="Quick symptom and food note." />
-        <ActionCard icon={Zap} title="Flare Help" text="Switch to stricter guidance." />
-        <ActionCard icon={CalendarDays} title="Trends" text="Future symptom patterns." />
+     <ActionCard icon={Camera} title="Scan Food" text="Check a meal, snack, label, or menu." onClick={() => setActiveTab('scan')} />
+<ActionCard icon={ClipboardList} title="Daily Log" text="Quick symptom and food note." onClick={() => setActiveTab('me')} />
+<ActionCard icon={Zap} title="Flare Help" text="Switch to stricter guidance." onClick={() => setActiveTab('flare')} />
+<ActionCard icon={CalendarDays} title="Trends" text="Future symptom patterns." onClick={() => setActiveTab('me')} />
       </div>
     </div>
   );
@@ -184,18 +187,161 @@ function FlareScreen() {
 }
 
 function MeScreen() {
+  const [meScreen, setMeScreen] = useState('main');
+
+  if (meScreen === 'daily-log') {
+    return <DailyLogScreen onBack={() => setMeScreen('main')} />;
+  }
+
   return (
     <div className="screen-content">
       <ScreenTitle title="Me" subtitle="Personal food profile and app records." />
 
       <div className="list-stack">
         <ListRow icon={Apple} title="My Foods" />
-        <ListRow icon={ClipboardList} title="Daily Log" />
+        <ListRow icon={ClipboardList} title="Daily Log" onClick={() => setMeScreen('daily-log')} />
         <ListRow icon={NotebookPen} title="Notes" />
         <ListRow icon={History} title="History" />
         <ListRow icon={Settings} title="Settings" />
       </div>
     </div>
+  );
+}
+
+function DailyLogScreen({ onBack }) {
+  const [bellyStatus, setBellyStatus] = useState('Good');
+  const [painLevel, setPainLevel] = useState(0);
+  const [bathroomTrips, setBathroomTrips] = useState(0);
+  const [urgency, setUrgency] = useState('None');
+  const [notes, setNotes] = useState('');
+
+  function saveLog() {
+    console.log({
+      bellyStatus,
+      painLevel,
+      bathroomTrips,
+      urgency,
+      notes,
+    });
+  }
+
+  return (
+    <div className="screen-content">
+      <button className="back-button" onClick={onBack} type="button">
+        <ArrowLeft size={20} />
+        Back
+      </button>
+
+      <ScreenTitle title="Me → Daily Log" subtitle="10-second Crohn's check-in." />
+
+      <LogSection title="Belly Status">
+        <TapGroup
+          options={['Good', 'Ehhh', 'Rough', 'Flare']}S
+          value={bellyStatus}
+          onChange={setBellyStatus}
+        />
+      </LogSection>
+
+      <LogSection title={`Pain Level: ${painLevel}`}>
+        <input
+          className="pain-slider"
+          type="range"
+          min="0"
+          max="10"
+          value={painLevel}
+          onChange={(event) => setPainLevel(Number(event.target.value))}
+        />
+      </LogSection>
+
+      <LogSection title="Bathroom Trips">
+        <div className="counter-control">
+          <button
+            type="button"
+            onClick={() => setBathroomTrips((current) => Math.max(0, current - 1))}
+          >
+            <Minus size={20} />
+          </button>
+
+          <strong>{bathroomTrips}</strong>
+
+          <button
+            type="button"
+            onClick={() => setBathroomTrips((current) => current + 1)}
+          >
+            <Plus size={20} />
+          </button>
+        </div>
+      </LogSection>
+
+      <LogSection title="Urgency">
+        <TapGroup
+          options={['None', 'Mild', 'Moderate', 'Severe']}
+          value={urgency}
+          onChange={setUrgency}
+        />
+      </LogSection>
+
+      <LogSection title="Optional Notes">
+        <textarea
+          className="notes-box"
+          placeholder="Anything worth remembering?"
+          value={notes}
+          onChange={(event) => setNotes(event.target.value)}
+        />
+      </LogSection>
+
+      <button className="primary-action full-width" onClick={saveLog} type="button">
+        Save Log
+      </button>
+
+      <div className="recent-logs">
+        <h3>Recent Logs</h3>
+
+        <div className="recent-log-card">
+          <strong>June 15</strong>
+          <span>Status: Okay</span>
+          <span>Pain: 2</span>
+        </div>
+
+        <div className="recent-log-card">
+          <strong>June 14</strong>
+          <span>Status: Good</span>
+          <span>Pain: 1</span>
+        </div>
+
+        <div className="recent-log-card">
+          <strong>June 13</strong>
+          <span>Status: Rough</span>
+          <span>Pain: 5</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TapGroup({ options, value, onChange }) {
+  return (
+    <div className="tap-group">
+      {options.map((option) => (
+        <button
+          key={option}
+          className={value === option ? 'selected' : ''}
+          onClick={() => onChange(option)}
+          type="button"
+        >
+          {option}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function LogSection({ title, children }) {
+  return (
+    <section className="log-section">
+      <h3>{title}</h3>
+      {children}
+    </section>
   );
 }
 
@@ -208,13 +354,17 @@ function ScreenTitle({ title, subtitle }) {
   );
 }
 
-function ActionCard({ icon: Icon, title, text }) {
+function ActionCard({ icon: Icon, title, text, onClick }) {
   return (
-    <article className="action-card">
+    <button
+      className="action-card"
+      onClick={onClick}
+      type="button"
+    >
       <Icon size={24} />
       <h3>{title}</h3>
       <p>{text}</p>
-    </article>
+    </button>
   );
 }
 
@@ -244,9 +394,9 @@ function FoodPanel({ icon: Icon, title, foods }) {
   );
 }
 
-function ListRow({ icon: Icon, title }) {
+function ListRow({ icon: Icon, title, onClick }) {
   return (
-    <button className="list-row" type="button">
+    <button className="list-row" onClick={onClick} type="button">
       <Icon size={22} />
       <span>{title}</span>
       <strong>›</strong>
